@@ -29,7 +29,7 @@ To install the package, run the following command in your project root:
 composer require techies-africa/nomad
 ```
 
-After installing Nomad, publish its assets and migrations using the nomad:install Artisan command. After installing Nomad, you should also run the migrate command in order to create the column in the default table:
+After installing Nomad, publish its assets and migrations using the nomad:install Artisan command. After installing Nomad, you should also run the migrate command in order to create the timezone column in the default table:
 
 ```sh
 php artisan nomad:install
