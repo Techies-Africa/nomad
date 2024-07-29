@@ -1,6 +1,6 @@
 <?php
 
-namespace TechiesAfrica\Nomad\Http\Middleware;
+namespace TechiesAfrica\Nomad\Middleware;
 
 use TechiesAfrica\Nomad\Services\Timezone\NomadTimezoneService;
 use Closure;
