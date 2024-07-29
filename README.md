@@ -27,7 +27,7 @@ To install the package, run the following command in your project root:
 
 ```sh
 composer require techies-africa/nomad
-``'
+```
 
 ### Download the Release
 
