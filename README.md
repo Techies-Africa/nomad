@@ -2,7 +2,7 @@
 
 <dl>
   <dt>Reference Docs</dt>
-  <dd><a href="https://github.com/Techies-Africa/nomad/master/">https://github.com/Techies-Africa/nomad/master/</a></dd>
+  <dd><a href="https://github.com/Techies-Africa/nomad">https://github.com/Techies-Africa/nomad</a></dd>
   <dt>License</dt>
   <dd>MIT</dd>
 </dl>
