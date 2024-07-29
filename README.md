@@ -29,6 +29,14 @@ To install the package, run the following command in your project root:
 composer require techies-africa/nomad
 ```
 
+After installing Nomad, publish its assets and migrations using the nomad:install Artisan command. After installing Nomad, you should also run the migrate command in order to create the column in the default table:
+
+```sh
+php artisan nomad:install
+
+php artisan migrate
+```
+
 ### Download the Release
 
 If you prefer not to use composer, you can download the package in its entirety. The [Releases](https://github.com/Techies-Africa/nomad/releases) page lists all stable versions. Download any file for a package including its dependencies.
