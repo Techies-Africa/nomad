@@ -1,7 +1,7 @@
 {
   "name": "techies-africa/nomad",
   "description": "Official laravel client for Nomad",
-  "keywords": ["time", "datetime", "timezone",  "laravel" , "nomad", "techies africa"],
+  "keywords": ["time", "date", "datetime", "timezone",  "laravel" , "nomad", "techies africa"],
   "type": "library",
   "license": "MIT",
   "authors": [
