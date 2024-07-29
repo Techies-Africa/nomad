@@ -13,7 +13,7 @@ return new class extends Migration
     public function up(): void
     {
         $table_name = Config::get("nomad.table");
-        Schema::create($table_name, function (Blueprint $table) use ($table_name) {
+        Schema::table($table_name, function (Blueprint $table) use ($table_name) {
             if (!Schema::hasColumn($table_name, "timezone")) {
                 $table->string("timezone");
             }
@@ -26,7 +26,7 @@ return new class extends Migration
     public function down(): void
     {
         $table_name = Config::get("nomad.table");
-        Schema::create($table_name, function (Blueprint $table) use ($table_name) {
+        Schema::table($table_name, function (Blueprint $table) use ($table_name) {
             if (Schema::hasColumn($table_name, "timezone")) {
                 $table->dropColumn("timezone");
             }
