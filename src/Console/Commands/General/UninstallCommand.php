@@ -29,6 +29,12 @@ class UninstallCommand extends Command
             }
         }
 
+        if ($path = database_path('migrations/' . date('Y_m_d_His', time()) . '_create_timezone_column.php')) {
+            if(File::delete($path)){
+                $this->line("migrations/" . date('Y_m_d_His', time()) . "_create_timezone_column.php file deleted successfully.");
+            }
+        }
+
         $this->info("Nomad uninstalled sucessfully...");
     }
 

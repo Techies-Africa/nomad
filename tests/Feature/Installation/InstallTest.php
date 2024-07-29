@@ -13,16 +13,19 @@ class InstallTest extends TestCase
     {
         $config_file = config_path('nomad.php');
         $middleware_path = app_path('Http/Middleware/Nomad/NomadMiddleware.php');
+        $migration_path = database_path('migrations/' . date('Y_m_d_His', time()) . '_create_timezone_column.php');
 
         Artisan::call("nomad:uninstall");
 
         $this->assertFalse(File::exists($config_file));
         $this->assertFalse(File::exists($middleware_path));
+        $this->assertFalse(File::exists($migration_path));
 
         Artisan::call("nomad:install");
 
         $this->assertTrue(File::exists($config_file));
         $this->assertTrue(File::exists($middleware_path));
+        $this->assertTrue(File::exists($migration_path));
     }
 
 
@@ -50,10 +53,12 @@ class InstallTest extends TestCase
     {
         $config_file = config_path('nomad.php');
         $middleware_path = app_path('Http/Middleware/Nomad/NomadMiddleware.php');
+        $migration_path = database_path('migrations/' . date('Y_m_d_His', time()) . '_create_timezone_column.php');
 
         Artisan::call("nomad:uninstall");
 
         $this->assertFalse(File::exists($config_file));
         $this->assertFalse(File::exists($middleware_path));
+        $this->assertFalse(File::exists($migration_path));
     }
 }

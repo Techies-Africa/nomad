@@ -41,6 +41,17 @@ class InstallCommand extends Command
             }
         }
 
+        if (!class_exists('CreateTimezoneColumn')) {
+            $this->publishFile('migrations');
+        } else {
+            if ($this->shouldOverwriteFile('Migration file already exists. Do you want to overwrite it?')) {
+                $this->info('Overwriting migration file...');
+                $this->publishFile("migrations", true);
+            } else {
+                $this->info('Existing migration was not overwritten');
+            }
+        }
+
         $this->info('Installed Nomad');
     }
 
@@ -75,5 +86,4 @@ class InstallCommand extends Command
 
         $this->call('vendor:publish', $params);
     }
-
 }
