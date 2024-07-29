@@ -1,30 +1,33 @@
-# Official Laravel Client for Nomad #
+# Official Laravel Client for Nomad
 
 <dl>
-  <dt>Reference Docs</dt><dd><a href="https://github.com/Techies-Africa/nomad/master/">https://github.com/Techies-Africa/nomad/master/</a></dd>
-  <dt>License</dt><dd>MIT</dd>
+  <dt>Reference Docs</dt>
+  <dd><a href="https://github.com/Techies-Africa/nomad/master/">https://github.com/Techies-Africa/nomad/master/</a></dd>
+  <dt>License</dt>
+  <dd>MIT</dd>
 </dl>
 
-The Laravel Nomad Package enables you to adjust various timezones of your consumers.
+## Overview
 
-## Requirements ##
+The Laravel Nomad Package streamlines the management of timezones within your application. It automatically adjusts timestamps to the user's local timezone when retrieving data, ensuring consistent and accurate datetime handling. This package simplifies timezone management across your application, providing a seamless experience for users in different timezones.
+
+## Requirements
+
 * [PHP 7.0 or higher](https://www.php.net/)
 
-## Installation ##
+## Installation
 
-You can use **Composer** or simply **Download the Release**
+You can install the package using **Composer** or by **Downloading the Release**.
 
 ### Composer
 
-The preferred method is via [composer](https://getcomposer.org/). Follow the
-[installation instructions](https://getcomposer.org/doc/00-intro.md) if you do not already have
-composer installed.
+The preferred method of installation is via [Composer](https://getcomposer.org/). If you do not already have Composer installed, follow the [installation instructions](https://getcomposer.org/doc/00-intro.md).
 
-Once composer is installed, execute the following command in your project root to install this library:
+To install the package, run the following command in your project root:
 
 ```sh
 composer require techies-africa/nomad
-``
+``'
 
 ### Download the Release
 
