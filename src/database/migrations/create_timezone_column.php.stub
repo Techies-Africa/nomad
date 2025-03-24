@@ -5,31 +5,30 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Schema;
 
-class CreateTimezoneColumn extends Migration
+return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
-        $table_name = Config::get("nomad.table");
-        Schema::table($table_name, function (Blueprint $table) use ($table_name) {
-            if (!Schema::hasColumn($table_name, "timezone")) {
-                $table->string("timezone");
-            }
-        });
+        $table_name = Config::get("nomad.table", "users");
+        if (Schema::hasTable($table_name)) {
+            Schema::table($table_name, function (Blueprint $table) use ($table_name) {
+                if (!Schema::hasColumn($table_name, "timezone")) {
+                    $table->string("timezone")->nullable();
+                }
+            });
+        }
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
-        $table_name = Config::get("nomad.table");
-        Schema::table($table_name, function (Blueprint $table) use ($table_name) {
-            if (Schema::hasColumn($table_name, "timezone")) {
-                $table->dropColumn("timezone");
-            }
-        });
+        $table_name = Config::get("nomad.table", "users");
+        if (Schema::hasTable($table_name)) {
+            Schema::table($table_name, function (Blueprint $table) use ($table_name) {
+                if (Schema::hasColumn($table_name, "timezone")) {
+                    $table->dropColumn("timezone");
+                }
+            });
+        }
     }
 };
+

@@ -17,8 +17,9 @@ class NomadMiddleware
      */
     public function handle(Request $request, Closure $next)
     {
+        $timezone = geoip($request->ip())->timezone ?? $request->header("timezone");  
         (new NomadTimezoneService)
-            ->setTimezone($request->header("timezone"))
+            ->setTimezone($timezone)
             ->save();
 
         return $next($request);

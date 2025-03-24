@@ -11,7 +11,8 @@
     }
   ],
   "require": {
-    "php": ">=7.0"
+    "php": ">=7.0",
+    "torann/geoip": "^3.0"
   },
   "require-dev": {
     "orchestra/testbench": "^8.23",

@@ -8,7 +8,6 @@ use TechiesAfrica\Nomad\Tests\TestCase;
 
 class InstallTest extends TestCase
 {
-
     function test_install_command()
     {
         $config_file = config_path('nomad.php');
