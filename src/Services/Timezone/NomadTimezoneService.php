@@ -10,7 +10,7 @@ use Illuminate\Validation\ValidationException;
 class NomadTimezoneService
 {
     protected ?string $timezone = null;
-    protected ?int $userId = null;
+    protected $userId = null;
 
     /**
      * Set the timezone value.
@@ -24,7 +24,7 @@ class NomadTimezoneService
     /**
      * Set the user ID explicitly.
      */
-    public function setUser(int $userId): static
+    public function setUser(int|string $userId): static
     {
         $this->userId = $userId;
         return $this;
@@ -69,7 +69,7 @@ class NomadTimezoneService
     /**
      * Resolve the user ID from explicit set or current auth.
      */
-    protected function resolveUserId(): ?int
+    protected function resolveUserId()
     {
         if ($this->userId !== null) {
             return $this->userId;

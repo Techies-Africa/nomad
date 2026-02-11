@@ -22,24 +22,35 @@ class NomadMiddleware
      */
     public function handle(Request $request, Closure $next): mixed
     {
-        $timezone = $this->resolver->getTimezone();
+        $response = $next($request);
 
-        // Persist to DB only if user is authenticated and timezone changed
+        // After auth middleware has run, persist timezone if it changed
+        $this->persistTimezone();
+
+        return $response;
+    }
+
+    protected function persistTimezone(): void
+    {
         $guard = Config::get('nomad.guard');
         $column = Config::get('nomad.column', 'timezone');
 
         try {
             $user = auth($guard)->user();
-            if ($user && ($user->{$column} ?? null) !== $timezone) {
+            if (!$user) {
+                return;
+            }
+
+            $timezone = $this->resolver->getTimezone();
+
+            if (($user->{$column} ?? null) !== $timezone) {
                 (new NomadTimezoneService())
                     ->setUser($user->id)
                     ->setTimezone($timezone)
                     ->save();
             }
-        } catch (\Throwable) {
+        } catch (\Throwable $th) {
             // Auth or DB not available — continue silently
         }
-
-        return $next($request);
     }
 }

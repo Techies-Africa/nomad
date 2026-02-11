@@ -42,6 +42,10 @@ class NomadServiceProvider extends ServiceProvider
                 'migrations/' . date('Y_m_d_His', time()) . '_create_timezone_column.php'
             ),
         ], 'nomad-migrations');
+
+        $this->publishes([
+            __DIR__ . '/../Stubs/NomadMiddleware.stub' => app_path('Http/Middleware/Nomad/NomadMiddleware.php'),
+        ], 'nomad-middleware');
     }
 
     protected function setupCommands(): void

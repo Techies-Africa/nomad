@@ -15,59 +15,25 @@ class InstallCommand extends Command
         $this->info('Installing Nomad...');
 
         $this->publishConfig();
-        $this->publishMiddleware();
         $this->publishMigration();
 
+        $this->newLine();
         $this->info('Nomad installed successfully.');
     }
 
     private function publishConfig(): void
     {
-        $this->info('Publishing configuration...');
-
         if (!File::exists(config_path('nomad.php'))) {
             $this->publishFile('nomad-config');
             $this->info('Published configuration');
         } else {
             if ($this->shouldOverwrite('Config file already exists. Do you want to overwrite it?')) {
-                $this->info('Overwriting configuration file...');
                 $this->publishFile('nomad-config', true);
+                $this->info('Overwritten configuration');
             } else {
                 $this->info('Existing configuration was not overwritten');
             }
         }
-    }
-
-    private function publishMiddleware(): void
-    {
-        $middlewareDir = app_path('Http/Middleware/Nomad');
-        $middlewareFile = $middlewareDir . '/NomadMiddleware.php';
-
-        if (!File::exists($middlewareFile)) {
-            $this->generateMiddleware($middlewareDir, $middlewareFile);
-        } else {
-            if ($this->shouldOverwrite('Middleware file already exists. Do you want to overwrite it?')) {
-                $this->info('Overwriting middleware file...');
-                $this->generateMiddleware($middlewareDir, $middlewareFile);
-            } else {
-                $this->info('Existing middleware was not overwritten');
-            }
-        }
-    }
-
-    private function generateMiddleware(string $middlewareDir, string $middlewareFile): void
-    {
-        if (!file_exists($middlewareDir)) {
-            mkdir($middlewareDir, 0755, true);
-        }
-
-        $stubPath = realpath(__DIR__ . '/../../../Stubs/NomadMiddleware.stub');
-        $stub = file_get_contents($stubPath);
-
-        $content = str_replace('{{ namespace }}', 'App\\Http\\Middleware\\Nomad', $stub);
-        file_put_contents($middlewareFile, $content);
-
-        $this->info('Middleware published to: ' . $middlewareFile);
     }
 
     private function publishMigration(): void
@@ -79,8 +45,8 @@ class InstallCommand extends Command
             $this->info('Published migration');
         } else {
             if ($this->shouldOverwrite('Migration file already exists. Do you want to overwrite it?')) {
-                $this->info('Overwriting migration file...');
                 $this->publishFile('nomad-migrations', true);
+                $this->info('Overwritten migration');
             } else {
                 $this->info('Existing migration was not overwritten');
             }

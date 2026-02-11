@@ -16,7 +16,7 @@ You read in local time. You write in UTC. Automatically.
 ## Requirements
 
 - PHP >= 8.1
-- Laravel 10.x or 11.x
+- Laravel 10.x, 11.x, or 12.x
 
 ## Installation
 
@@ -24,7 +24,7 @@ You read in local time. You write in UTC. Automatically.
 composer require techies-africa/nomad
 ```
 
-Run the install command to publish the config file, middleware, and migration:
+Run the install command to publish the config file and migration:
 
 ```bash
 php artisan nomad:install
@@ -38,13 +38,13 @@ php artisan migrate
 
 ### Register the Middleware
 
-Add the Nomad middleware to your application.
+Add the Nomad middleware to your application. The middleware detects the user's timezone on each request and persists it to the database for authenticated users (only when the timezone changes).
 
-**Laravel 11** (`bootstrap/app.php`):
+**Laravel 11/12** (`bootstrap/app.php`):
 
 ```php
 ->withMiddleware(function (Middleware $middleware) {
-    $middleware->append(\App\Http\Middleware\Nomad\NomadMiddleware::class);
+    $middleware->append(\TechiesAfrica\Nomad\Middleware\NomadMiddleware::class);
 })
 ```
 
@@ -53,11 +53,17 @@ Add the Nomad middleware to your application.
 ```php
 protected $middleware = [
     // ...
-    \App\Http\Middleware\Nomad\NomadMiddleware::class,
+    \TechiesAfrica\Nomad\Middleware\NomadMiddleware::class,
 ];
 ```
 
-The middleware detects the user's timezone on each request and persists it to the database for authenticated users (only when the timezone changes).
+If you need to customize the middleware, publish a local copy and reference that instead:
+
+```bash
+php artisan vendor:publish --tag=nomad-middleware
+```
+
+This publishes to `app/Http/Middleware/Nomad/NomadMiddleware.php`.
 
 ### Frontend: Sending the Timezone Header
 
@@ -203,8 +209,8 @@ return [
 
 | Command | Description |
 |---------|-------------|
-| `php artisan nomad:install` | Publishes config, middleware, and migration |
-| `php artisan nomad:uninstall` | Removes published config, middleware, and migration files |
+| `php artisan nomad:install` | Publishes config and migration |
+| `php artisan nomad:uninstall` | Removes published config, migration, and middleware files |
 | `php artisan nomad:migrate` | Publishes and runs the timezone migration |
 
 ## Architecture
