@@ -242,6 +242,11 @@ php artisan nomad:uninstall
 composer remove techies-africa/nomad
 ```
 
+## Credits
+
+- **Author**: [Joel Omojefe](https://www.linkedin.com/in/joel-omojefe/)
+- **Organization**: [Techies Africa](https://techies.africa)
+
 ## License
 
-MIT
+The MIT License (MIT). Please see [License File](LICENSE) for more information.
