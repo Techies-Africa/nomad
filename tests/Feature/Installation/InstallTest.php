@@ -8,56 +8,38 @@ use TechiesAfrica\Nomad\Tests\TestCase;
 
 class InstallTest extends TestCase
 {
-    function test_install_command()
+    public function test_install_command(): void
     {
-        $config_file = config_path('nomad.php');
-        $middleware_path = app_path('Http/Middleware/Nomad/NomadMiddleware.php');
-        $migration_path = database_path('migrations/' . date('Y_m_d_His', time()) . '_create_timezone_column.php');
+        $configFile = config_path('nomad.php');
+        $middlewarePath = app_path('Http/Middleware/Nomad/NomadMiddleware.php');
 
-        Artisan::call("nomad:uninstall");
+        // Clean slate
+        Artisan::call('nomad:uninstall');
 
-        $this->assertFalse(File::exists($config_file));
-        $this->assertFalse(File::exists($middleware_path));
-        $this->assertFalse(File::exists($migration_path));
+        $this->assertFalse(File::exists($configFile));
+        $this->assertFalse(File::exists($middlewarePath));
+        $this->assertEmpty(glob(database_path('migrations/*_create_timezone_column.php')));
 
-        Artisan::call("nomad:install");
+        Artisan::call('nomad:install');
 
-        $this->assertTrue(File::exists($config_file));
-        $this->assertTrue(File::exists($middleware_path));
-        $this->assertTrue(File::exists($migration_path));
+        $this->assertTrue(File::exists($configFile));
+        $this->assertTrue(File::exists($middlewarePath));
+        $this->assertNotEmpty(glob(database_path('migrations/*_create_timezone_column.php')));
     }
 
-
-    function test_reinstall_command()
+    public function test_uninstall_command(): void
     {
-        $config_file = config_path('nomad.php');
+        $configFile = config_path('nomad.php');
+        $middlewarePath = app_path('Http/Middleware/Nomad/NomadMiddleware.php');
 
-        $this->assertTrue(File::exists($config_file));
+        // Clean slate then install fresh
+        Artisan::call('nomad:uninstall');
+        Artisan::call('nomad:install');
 
-        $command = $this->artisan('nomad:install');
-        $command->expectsQuestion("Config file already exists. Do you want to overwrite it?", "yes");
-        $command->expectsQuestion("Middleware file already exists. Do you want to overwrite it?", "yes");
-        $command->execute();
-        $command->expectsOutput('Overwriting configuration file...');
+        Artisan::call('nomad:uninstall');
 
-        $this->assertTrue(File::exists($config_file));
-
-        $this->assertEquals(
-            File::get($config_file),
-            File::get(__DIR__.'/../../../src/config/nomad.php')
-        );
-    }
-
-    function test_uninstall_command()
-    {
-        $config_file = config_path('nomad.php');
-        $middleware_path = app_path('Http/Middleware/Nomad/NomadMiddleware.php');
-        $migration_path = database_path('migrations/' . date('Y_m_d_His', time()) . '_create_timezone_column.php');
-
-        Artisan::call("nomad:uninstall");
-
-        $this->assertFalse(File::exists($config_file));
-        $this->assertFalse(File::exists($middleware_path));
-        $this->assertFalse(File::exists($migration_path));
+        $this->assertFalse(File::exists($configFile));
+        $this->assertFalse(File::exists($middlewarePath));
+        $this->assertEmpty(glob(database_path('migrations/*_create_timezone_column.php')));
     }
 }

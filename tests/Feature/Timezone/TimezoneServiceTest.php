@@ -2,166 +2,124 @@
 
 namespace TechiesAfrica\Nomad\Tests\Feature\Timezone;
 
-use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Artisan;
-use Illuminate\Support\Facades\Config;
-use Illuminate\Support\Facades\Schema;
-use TechiesAfrica\Nomad\Tests\TestCase;
-use Mockery;
-use TechiesAfrica\Nomad\Helper\StaticHelper;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 use TechiesAfrica\Nomad\Services\Timezone\NomadTimezoneService;
+use TechiesAfrica\Nomad\Tests\TestCase;
 
 class TimezoneServiceTest extends TestCase
 {
-    protected function tearDown(): void
+    public function test_set_timezone(): void
     {
-        Mockery::close(); // Clean up Mockery
-        parent::tearDown();
-    }
-
-    public function test_set_timezone()
-    {
-        $service = new NomadTimezoneService(1);
+        $service = new NomadTimezoneService();
         $service->setTimezone('Africa/Lagos');
-        $this->assertEquals('Africa/Lagos', $this->getProperty($service, 'timezone'));
+
+        $reflection = new \ReflectionClass($service);
+        $property = $reflection->getProperty('timezone');
+        $property->setAccessible(true);
+
+        $this->assertEquals('Africa/Lagos', $property->getValue($service));
     }
 
-    public function test_saves_timezone()
+    public function test_saves_timezone(): void
     {
-        $table_name = $this->getTableName();
-        $this->ensureTableExists($table_name);
-        $this->ensureFactoryExists($table_name);
+        $userId = DB::table('users')->insertGetId([
+            'name'  => 'Test User',
+            'email' => 'test@example.com',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
 
-        $user = $this->createUser($table_name);
-        
-        $timezone = 'Africa/Lagos';
-        $service = new NomadTimezoneService($user->id);
-        $service->setTimezone($timezone);
-
-        $result = $service->save();
+        $result = (new NomadTimezoneService())
+            ->setUser($userId)
+            ->setTimezone('Africa/Lagos')
+            ->save();
 
         $this->assertEquals(1, $result);
-        $this->assertDatabaseHas($table_name, [
-            'id' => $user->id,
-            'timezone' => $timezone,
+        $this->assertDatabaseHas('users', [
+            'id' => $userId,
+            'timezone' => 'Africa/Lagos',
         ]);
     }
 
-    /**
-     * Get the configured table name.
-     */
-    protected function getTableName(): string
+    public function test_save_returns_false_without_user(): void
     {
-        return Config::get("nomad.table", "users");
+        $result = (new NomadTimezoneService())
+            ->setTimezone('Africa/Lagos')
+            ->save();
+
+        $this->assertFalse($result);
     }
 
-    /**
-     * Ensure the database table exists, creating it if necessary.
-     */
-    protected function ensureTableExists(string $table_name): void
+    public function test_rejects_invalid_timezone(): void
     {
-        if (!Schema::hasTable($table_name)) {
-            Schema::create($table_name, function (Blueprint $table) {
-                $table->id();
-                $table->string('name');
-                $table->string('email')->unique();
-                $table->string('timezone')->nullable();
-                $table->timestamps();
-            });
+        $userId = DB::table('users')->insertGetId([
+            'name'  => 'Test User',
+            'email' => 'test@example.com',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        $this->expectException(ValidationException::class);
+
+        (new NomadTimezoneService())
+            ->setUser($userId)
+            ->setTimezone('Invalid/Timezone')
+            ->save();
+    }
+
+    public function test_accepts_various_valid_timezones(): void
+    {
+        $userId = DB::table('users')->insertGetId([
+            'name'  => 'Test User',
+            'email' => 'test@example.com',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        $timezones = ['America/New_York', 'Europe/London', 'Asia/Tokyo', 'UTC'];
+
+        foreach ($timezones as $tz) {
+            $result = (new NomadTimezoneService())
+                ->setUser($userId)
+                ->setTimezone($tz)
+                ->save();
+
+            $this->assertEquals(1, $result, "Failed to save timezone: $tz");
+            $this->assertDatabaseHas('users', [
+                'id' => $userId,
+                'timezone' => $tz,
+            ]);
         }
     }
 
-    /**
-     * Ensure the factory class exists for the given table name.
-     */
-    protected function ensureFactoryExists(string $table_name): void
+    public function test_set_user_changes_target(): void
     {
-        $model_class = StaticHelper::getModelFromTable($table_name);
-        $model_name = StaticHelper::getModelName($table_name);
+        $userId1 = DB::table('users')->insertGetId([
+            'name'  => 'User 1',
+            'email' => 'user1@example.com',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
 
-        if (!class_exists($model_class)) {
-            $this->createDynamicModel($model_name, $table_name);
-        }
+        $userId2 = DB::table('users')->insertGetId([
+            'name'  => 'User 2',
+            'email' => 'user2@example.com',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
 
-        $this->createFactoryIfNotExists($model_name);
-    }
+        (new NomadTimezoneService())
+            ->setUser($userId1)
+            ->setTimezone('Africa/Lagos')
+            ->save();
 
-    /**
-     * Dynamically create a model class.
-     */
-    protected function createDynamicModel(string $model_name, string $table_name): void
-    {
-        eval("
-            namespace App\Models;
-            use Illuminate\Database\Eloquent\Model;
-            use Illuminate\Database\Eloquent\Factories\HasFactory;
+        (new NomadTimezoneService())
+            ->setUser($userId2)
+            ->setTimezone('Asia/Tokyo')
+            ->save();
 
-            class {$model_name} extends Model {
-                use HasFactory;
-                protected \$table = '{$table_name}';
-            }
-        ");
-    }
-
-    /**
-     * Create a factory file for the given model if it does not exist.
-     */
-    protected function createFactoryIfNotExists(string $model_name): void
-    {
-        $factory_class_name = "{$model_name}Factory";
-        $factory_path = database_path("factories/{$factory_class_name}.php");
-
-        if (!is_dir(database_path('factories'))) {
-            mkdir(database_path('factories'), 0755, true);
-        }
-
-        if (!class_exists("Database\Factories\\{$factory_class_name}") && !file_exists($factory_path)) {
-            $factory_content = "<?php
-
-            namespace Database\Factories;
-
-            use App\Models\\{$model_name};
-            use Illuminate\Database\Eloquent\Factories\Factory;
-
-            class {$factory_class_name} extends Factory
-            {
-                protected \$model = \\App\Models\\{$model_name}::class;
-
-                public function definition()
-                {
-                    return [
-                        'name' => \$this->faker->name,
-                        'email' => \$this->faker->unique()->safeEmail,
-                    ];
-                }
-            }
-            ";
-
-            file_put_contents($factory_path, $factory_content);
-        }
-
-        require_once $factory_path;
-    }
-
-    /**
-     * Create a user using the model's factory.
-     */
-    protected function createUser(string $table_name)
-    {
-        $model_class = StaticHelper::getModelFromTable($table_name);
-
-        return $model_class::factory()->create();
-    }
-
-    /**
-     * Helper method to access private/protected properties.
-     */
-    protected function getProperty($object, $property_name)
-    {
-        $reflection = new \ReflectionClass(get_class($object));
-        $property = $reflection->getProperty($property_name);
-        $property->setAccessible(true);
-
-        return $property->getValue($object);
+        $this->assertDatabaseHas('users', ['id' => $userId1, 'timezone' => 'Africa/Lagos']);
+        $this->assertDatabaseHas('users', ['id' => $userId2, 'timezone' => 'Asia/Tokyo']);
     }
 }

@@ -2,63 +2,85 @@
 
 namespace TechiesAfrica\Nomad\Services\Timezone;
 
-use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\ValidationException;
 
 class NomadTimezoneService
 {
-    protected $timezone;
-    protected $model;
-
-    public function __construct($user_id = null)
-    {
-        $table = Config::get('nomad.table', "users");
-        $user_id ??= auth(Config::get("nomad.guard"))->id();
-        $this->model = DB::table($table)->where("id", $user_id);
-    }
+    protected ?string $timezone = null;
+    protected ?int $userId = null;
 
     /**
-     * Set timezone
-     * 
-     * @param string $timezone  Current timezone of the user
-     * @return $this
+     * Set the timezone value.
      */
-    public function setTimezone(string $timezone)
+    public function setTimezone(string $timezone): static
     {
         $this->timezone = $timezone;
         return $this;
     }
 
     /**
-     * Set user ID manually
-     * 
-     * @param int $userId
-     * @return $this
+     * Set the user ID explicitly.
      */
-    public function setUser(int $user_id)
+    public function setUser(int $userId): static
     {
-        $this->model = DB::table(Config::get('nomad.table', "users"))->where("id", $user_id);
+        $this->userId = $userId;
         return $this;
     }
 
     /**
-     * Validate timezone before saving
-     *  @return array
+     * Save the timezone to the database.
+     *
+     * @return int|false Number of affected rows, or false if no user available.
+     * @throws ValidationException
      */
-    private function validate(): array
-    {
-        $data = ['timezone' => $this->timezone];
-        return Validator::make($data, [
-            "timezone" => "required|string",
-        ])->validate();
-    }
-
-    public function save()
+    public function save(): int|false
     {
         $data = $this->validate();
-        return $this->model?->update([
-            "timezone" => $data["timezone"]
-        ]);
+        $userId = $this->resolveUserId();
+
+        if ($userId === null) {
+            return false;
+        }
+
+        $table = Config::get('nomad.table', 'users');
+        $column = Config::get('nomad.column', 'timezone');
+
+        return DB::table($table)
+            ->where('id', $userId)
+            ->update([$column => $data['timezone']]);
+    }
+
+    /**
+     * Validate the timezone is a valid IANA identifier.
+     *
+     * @throws ValidationException
+     */
+    protected function validate(): array
+    {
+        return Validator::make(
+            ['timezone' => $this->timezone],
+            ['timezone' => ['required', 'string', 'timezone']]
+        )->validate();
+    }
+
+    /**
+     * Resolve the user ID from explicit set or current auth.
+     */
+    protected function resolveUserId(): ?int
+    {
+        if ($this->userId !== null) {
+            return $this->userId;
+        }
+
+        $guard = Config::get('nomad.guard');
+
+        try {
+            return auth($guard)->id();
+        } catch (\Throwable) {
+            return null;
+        }
     }
 }

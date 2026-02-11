@@ -7,32 +7,30 @@ use Illuminate\Console\Command;
 class MigrateCommand extends Command
 {
     protected $signature = 'nomad:migrate';
+    protected $description = 'Publish and run the Nomad timezone column migration';
 
-    protected $description = 'Setup timezone column in the selected table';
-
-    public function handle()
+    public function handle(): void
     {
         $this->info('Running Nomad Migration...');
 
-        if (!class_exists('CreateTimezoneColumn')) {
-            $this->publishFile('migrations');
+        // Publish migration if not already published
+        $existing = glob(database_path('migrations/*_create_timezone_column.php'));
+
+        if (empty($existing)) {
+            $this->call('vendor:publish', [
+                '--provider' => 'TechiesAfrica\\Nomad\\Providers\\NomadServiceProvider',
+                '--tag' => 'nomad-migrations',
+            ]);
+            $existing = glob(database_path('migrations/*_create_timezone_column.php'));
+        }
+
+        // Run the migration
+        if (!empty($existing)) {
+            $this->call('migrate', [
+                '--path' => 'database/migrations/' . basename($existing[0]),
+            ]);
         }
 
         $this->info('Nomad Migration Successful');
     }
-
-    private function publishFile($tag, $forcePublish = false)
-    {
-        $params = [
-            '--provider' => "TechiesAfrica\Nomad\Providers\NomadServiceProvider",
-            '--tag' => $tag
-        ];
-
-        if ($forcePublish === true) {
-            $params['--force'] = true;
-        }
-
-        $this->call('vendor:publish', $params);
-    }
-
 }

@@ -8,79 +8,98 @@ use Illuminate\Support\Facades\File;
 class InstallCommand extends Command
 {
     protected $signature = 'nomad:install';
-
     protected $description = 'Setup Nomad in an application';
 
-    public function handle()
+    public function handle(): void
     {
         $this->info('Installing Nomad...');
 
+        $this->publishConfig();
+        $this->publishMiddleware();
+        $this->publishMigration();
+
+        $this->info('Nomad installed successfully.');
+    }
+
+    private function publishConfig(): void
+    {
         $this->info('Publishing configuration...');
 
-        if (!$this->configExists('nomad.php')) {
-            $this->publishFile("config");
+        if (!File::exists(config_path('nomad.php'))) {
+            $this->publishFile('nomad-config');
             $this->info('Published configuration');
         } else {
-            if ($this->shouldOverwriteFile('Config file already exists. Do you want to overwrite it?')) {
+            if ($this->shouldOverwrite('Config file already exists. Do you want to overwrite it?')) {
                 $this->info('Overwriting configuration file...');
-                $this->publishFile("config", true);
+                $this->publishFile('nomad-config', true);
             } else {
                 $this->info('Existing configuration was not overwritten');
             }
         }
+    }
 
+    private function publishMiddleware(): void
+    {
+        $middlewareDir = app_path('Http/Middleware/Nomad');
+        $middlewareFile = $middlewareDir . '/NomadMiddleware.php';
 
-        if (!$this->fileExists(app_path("Http/Middleware/Nomad/NomadMiddleware.php"))) {
-            $this->publishFile("middleware");
+        if (!File::exists($middlewareFile)) {
+            $this->generateMiddleware($middlewareDir, $middlewareFile);
         } else {
-            if ($this->shouldOverwriteFile('Middleware file already exists. Do you want to overwrite it?')) {
+            if ($this->shouldOverwrite('Middleware file already exists. Do you want to overwrite it?')) {
                 $this->info('Overwriting middleware file...');
-                $this->publishFile("middleware", true);
+                $this->generateMiddleware($middlewareDir, $middlewareFile);
             } else {
                 $this->info('Existing middleware was not overwritten');
             }
         }
+    }
 
-        if (!class_exists('CreateTimezoneColumn')) {
-            $this->publishFile('migrations');
+    private function generateMiddleware(string $middlewareDir, string $middlewareFile): void
+    {
+        if (!file_exists($middlewareDir)) {
+            mkdir($middlewareDir, 0755, true);
+        }
+
+        $stubPath = realpath(__DIR__ . '/../../../Stubs/NomadMiddleware.stub');
+        $stub = file_get_contents($stubPath);
+
+        $content = str_replace('{{ namespace }}', 'App\\Http\\Middleware\\Nomad', $stub);
+        file_put_contents($middlewareFile, $content);
+
+        $this->info('Middleware published to: ' . $middlewareFile);
+    }
+
+    private function publishMigration(): void
+    {
+        $existing = glob(database_path('migrations/*_create_timezone_column.php'));
+
+        if (empty($existing)) {
+            $this->publishFile('nomad-migrations');
+            $this->info('Published migration');
         } else {
-            if ($this->shouldOverwriteFile('Migration file already exists. Do you want to overwrite it?')) {
+            if ($this->shouldOverwrite('Migration file already exists. Do you want to overwrite it?')) {
                 $this->info('Overwriting migration file...');
-                $this->publishFile("migrations", true);
+                $this->publishFile('nomad-migrations', true);
             } else {
                 $this->info('Existing migration was not overwritten');
             }
         }
-
-        $this->info('Installed Nomad');
     }
 
-    private function configExists($fileName)
+    private function shouldOverwrite(string $message): bool
     {
-        return File::exists(config_path($fileName));
+        return $this->confirm($message, false);
     }
 
-    private function fileExists($file_path)
-    {
-        return File::exists($file_path);
-    }
-
-    private function shouldOverwriteFile($message)
-    {
-        return $this->confirm(
-            $message,
-            false
-        );
-    }
-
-    private function publishFile($tag, $forcePublish = false)
+    private function publishFile(string $tag, bool $forcePublish = false): void
     {
         $params = [
-            '--provider' => "TechiesAfrica\Nomad\Providers\NomadServiceProvider",
-            '--tag' => $tag
+            '--provider' => 'TechiesAfrica\\Nomad\\Providers\\NomadServiceProvider',
+            '--tag' => $tag,
         ];
 
-        if ($forcePublish === true) {
+        if ($forcePublish) {
             $params['--force'] = true;
         }
 

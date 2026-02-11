@@ -8,43 +8,39 @@ use Illuminate\Support\Facades\File;
 class UninstallCommand extends Command
 {
     protected $signature = 'nomad:uninstall';
+    protected $description = 'Uninstall Nomad from the application';
 
-    protected $description = 'Unistall Nomad in an application';
-
-    public function handle()
+    public function handle(): void
     {
         $this->info('Uninstalling Nomad...');
 
-        $this->info('Uninstalling Nomad from application...');
+        // Remove config file
+        $configPath = config_path('nomad.php');
+        if (File::exists($configPath)) {
+            File::delete($configPath);
+            $this->line('Deleted config/nomad.php');
+        }
 
-        if ($this->configExists("nomad.php")) {
-            if(File::delete(config_path("nomad.php"))){
-                $this->line("config/nomad.php file deleted successfully.");
+        // Remove middleware file
+        $middlewarePath = app_path('Http/Middleware/Nomad/NomadMiddleware.php');
+        if (File::exists($middlewarePath)) {
+            File::delete($middlewarePath);
+            $this->line('Deleted Http/Middleware/Nomad/NomadMiddleware.php');
+
+            // Remove directory if empty
+            $middlewareDir = app_path('Http/Middleware/Nomad');
+            if (File::isDirectory($middlewareDir) && empty(File::files($middlewareDir))) {
+                File::deleteDirectory($middlewareDir);
             }
         }
 
-        if ($this->fileExists($path = app_path("Http/Middleware/Nomad/NomadMiddleware.php"))) {
-            if(File::delete($path)){
-                $this->line("Http/Middleware/Nomad/NomadMiddleware.php file deleted successfully.");
-            }
+        // Remove migration file(s) using glob pattern
+        $migrationFiles = glob(database_path('migrations/*_create_timezone_column.php'));
+        foreach ($migrationFiles as $file) {
+            File::delete($file);
+            $this->line('Deleted ' . basename($file));
         }
 
-        if ($path = database_path('migrations/' . date('Y_m_d_His', time()) . '_create_timezone_column.php')) {
-            if(File::delete($path)){
-                $this->line("migrations/" . date('Y_m_d_His', time()) . "_create_timezone_column.php file deleted successfully.");
-            }
-        }
-
-        $this->info("Nomad uninstalled sucessfully...");
-    }
-
-    private function configExists($fileName)
-    {
-        return File::exists(config_path($fileName));
-    }
-
-    private function fileExists($file_path)
-    {
-        return File::exists($file_path);
+        $this->info('Nomad uninstalled successfully.');
     }
 }

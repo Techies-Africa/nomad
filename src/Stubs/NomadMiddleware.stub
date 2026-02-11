@@ -1,6 +1,6 @@
 <?php
 
-namespace TechiesAfrica\Nomad\Middleware;
+namespace {{ namespace }};
 
 use Closure;
 use Illuminate\Http\Request;
@@ -24,7 +24,6 @@ class NomadMiddleware
     {
         $timezone = $this->resolver->getTimezone();
 
-        // Persist to DB only if user is authenticated and timezone changed
         $guard = Config::get('nomad.guard');
         $column = Config::get('nomad.column', 'timezone');
 
@@ -37,7 +36,7 @@ class NomadMiddleware
                     ->save();
             }
         } catch (\Throwable) {
-            // Auth or DB not available — continue silently
+            // Auth or DB not available
         }
 
         return $next($request);

@@ -8,18 +8,24 @@ use TechiesAfrica\Nomad\Tests\TestCase;
 
 class MigrateTest extends TestCase
 {
-    function test_migration_command()
+    public function test_migration_command_publishes_file(): void
     {
-        $migration_path = database_path('migrations/' . date('Y_m_d_His', time()) . '_create_timezone_column.php');
-
-        if (File::exists($migration_path)) {
-            File::delete($migration_path);
+        // Clean up any existing migration file
+        $existing = glob(database_path('migrations/*_create_timezone_column.php'));
+        foreach ($existing as $file) {
+            File::delete($file);
         }
 
-        $this->assertFalse(File::exists($migration_path), 'Migration file already exists');
+        $this->assertEmpty(
+            glob(database_path('migrations/*_create_timezone_column.php')),
+            'Migration file already exists'
+        );
 
-        Artisan::call("nomad:migrate");
+        Artisan::call('nomad:migrate');
 
-        $this->assertTrue(File::exists($migration_path), 'Migration file was not published');
+        $this->assertNotEmpty(
+            glob(database_path('migrations/*_create_timezone_column.php')),
+            'Migration file was not published'
+        );
     }
 }
