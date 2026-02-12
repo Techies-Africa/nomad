@@ -1,4 +1,4 @@
-# Nomad
+# Laravel Nomad
 
 Automatic UTC-to-user-timezone conversion for Laravel Eloquent models.
 
@@ -21,7 +21,7 @@ You read in local time. You write in UTC. Automatically.
 ## Installation
 
 ```bash
-composer require techies-africa/nomad
+composer require techies-africa/laravel-nomad
 ```
 
 Run the install command to publish the config file and migration:
@@ -239,7 +239,7 @@ composer test
 
 ```bash
 php artisan nomad:uninstall
-composer remove techies-africa/nomad
+composer remove techies-africa/laravel-nomad
 ```
 
 ## Credits

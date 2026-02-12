@@ -1,7 +1,7 @@
 {
-  "name": "techies-africa/nomad",
+  "name": "techies-africa/laravel-nomad",
   "description": "Automatic UTC-to-user-timezone conversion for Laravel Eloquent models",
-  "keywords": ["time", "date", "datetime", "timezone", "laravel", "nomad", "techies africa", "utc"],
+  "keywords": ["time", "date", "datetime", "timezone", "laravel", "nomad", "laravel-nomad", "techies africa", "utc"],
   "type": "library",
   "license": "MIT",
   "authors": [
